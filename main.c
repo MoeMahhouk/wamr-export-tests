@@ -50,12 +50,13 @@ char *read_wasm_binary_to_buffer(char *path, uint32_t *size)
     size_t read_bytes = fread(buffer, 1, fsize, fd); 
     if(read_bytes != fsize)
     {
+        free(buffer);
         fprintf(stderr, "file read didnt read the whole file size and returned only %zu instead of %zu \n", read_bytes, fsize);
         exit(EXIT_FAILURE);
     }
     fclose(fd);
-    *size = fsize + 1;
-    buffer[fsize] = 0;
+    *size = fsize; //+ 1;
+    //buffer[fsize] = 0;
     return buffer;
 }
 
@@ -111,6 +112,11 @@ int main(int argc, char *argv[])
 
     /* parse the WASM file from buffer and create a WASM module */
     module = wasm_runtime_load(buffer, size, error_buf, sizeof(error_buf));
+    if(module == NULL)
+    {
+        fprintf(stderr, "failed to load the module from the buffer\n");
+        exit(EXIT_FAILURE);
+    }
 
     /* create an instance of the WASM module (WASM linear memory is ready) */
     module_inst = wasm_runtime_instantiate(module, stack_size, heap_size,
