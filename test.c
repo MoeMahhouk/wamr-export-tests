@@ -16,4 +16,5 @@ int main (){
   my_printf("calling now my_printf imported function");
   char *hello = "hello there";  
   my_nprintf(hello, 12);
+  return 0;
 }

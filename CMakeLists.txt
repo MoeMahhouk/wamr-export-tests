@@ -71,14 +71,17 @@ add_custom_command(
     COMMENT "Compiling the test.c to test.wasm" 
     WORKING_DIRECTORY ${CMAKE_CURRENT_BIN_DIR}
 )
+add_custom_target(test.wasm 
+    COMMAND ${WASI_CLANG} --sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3 -o test.wasm ${CMAKE_CURRENT_SOURCE_DIR}/test.c
+
+)
 
 #add_executable(test.wasm test.c)
 #target_compile_options(test.wasm -sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3)
 ###### There is no way to specify another compiler for a single target
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/src)
 set(C_SOURCE_FILES main.c)
 
 add_executable(export_test ${C_SOURCE_FILES})
-target_include_directories(export_test PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH})
+target_include_directories(export_test PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(export_test PRIVATE vmlib pthread m)
