@@ -6,7 +6,7 @@
 
 void my_printf(wasm_exec_env_t exec_env, char *text)
 {
-    printf(text);
+    printf("%s\n",text);
 }
 
 void my_nprintf(wasm_exec_env_t exec_env, char *text, size_t len)
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     }
       /* lookup a WASM function by its name
      The function signature can NULL here */
-    func = wasm_runtime_lookup_function(module_inst, "main", NULL);
+    func = wasm_runtime_lookup_function(module_inst, "main", "()i");
     if (func == NULL) {
         printf("main function not found\n");
         return -1;
