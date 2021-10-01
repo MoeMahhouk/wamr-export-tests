@@ -20,9 +20,6 @@ set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 set(WAMR_BUILD_PLATFORM "linux")
 set(WAMR_BUILD_TARGET "X86_64")
-#if (NOT CMAKE_BUILD_TYPE)
-#  set (CMAKE_BUILD_TYPE Release)
-#endif ()
 
 set (WAMR_BUILD_INTERP 1)
 set (WAMR_BUILD_FAST_INTERP 1)
@@ -34,19 +31,9 @@ if (NOT MSVC)
 set (WAMR_BUILD_LIBC_WASI 1)
 endif ()
 
-#if (NOT MSVC)
-  # linker flags
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -fPIE")
-#  if (NOT (CMAKE_C_COMPILER MATCHES ".*clang.*" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang"))
-#    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections")
-#  endif ()
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat -Wformat-security")
-#  if (WAMR_BUILD_TARGET MATCHES "X86_.*" OR WAMR_BUILD_TARGET STREQUAL "AMD_64")
-#    if (NOT (CMAKE_C_COMPILER MATCHES ".*clang.*" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang"))
-#      set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mindirect-branch-register")
-#    endif ()
-#  endif ()
-#endif ()
+set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -fPIE")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat -Wformat-security")
+
 include (${WAMR_ROOT_DIR}/build-scripts/runtime_lib.cmake)
 add_library(vmlib STATIC ${WAMR_RUNTIME_LIB_SOURCE})
 
