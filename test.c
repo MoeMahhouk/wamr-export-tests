@@ -13,6 +13,7 @@ extern void hello_world();
 
 export("main")
 int main(){
+  printf("executing wasi printf\n");
   hello_world();
   my_printf("calling now my_printf imported function");
   char *hello = "hello there";  
