@@ -1,4 +1,4 @@
-C := /opt/wasi-sdk-12.0/bin/clang
+C := ./wasi-sdk/bin/clang
 #CFLAGS := --sysroot=/opt/wasi-sdk-12.0/share/wasi-sysroot -Wl,--no-entry,--allow-undefined,--export-all -O3
 CFLAGS := --target=wasm32 -nostdlib --sysroot=/opt/wasi-sdk-12.0/share/wasi-sysroot -Wl,--no-entry -O3
 

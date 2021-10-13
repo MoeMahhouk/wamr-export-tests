@@ -14,7 +14,7 @@ void my_nprintf(wasm_exec_env_t exec_env, char *text, size_t len)
     printf("message: '%.*s'\n", len, text);
 }
 
-void hello_world(wasm_exec_env_t exec_env) 
+void hello_world(wasm_exec_env_t exec_env)
 {
     printf("simple hello world is here \n");
 }
@@ -32,13 +32,13 @@ char *read_wasm_binary_to_buffer(char *path, uint32_t *size)
     {
         perror("fseek failed\n");
         return NULL;
-    } 
+    }
     long fsize = ftell(fd);
     if(fseek(fd, 0, SEEK_SET) != 0)  // rewind(fd); can be used here too
     {
         perror("fseek failed\n");
         return NULL;
-    } 
+    }
 
     char *buffer = malloc(fsize + 1);
     if (!buffer)
@@ -46,8 +46,8 @@ char *read_wasm_binary_to_buffer(char *path, uint32_t *size)
         perror("malloc for file buffer failed!\n");
         return NULL;
     }
-    
-    size_t read_bytes = fread(buffer, 1, fsize, fd); 
+
+    size_t read_bytes = fread(buffer, 1, fsize, fd);
     if(read_bytes != fsize)
     {
         free(buffer);
@@ -60,9 +60,9 @@ char *read_wasm_binary_to_buffer(char *path, uint32_t *size)
     return buffer;
 }
 
-int main(int argc, char *argv[]) 
-{    
-    static NativeSymbol native_symbols[] = 
+int main(int argc, char *argv[])
+{
+    static NativeSymbol native_symbols[] =
     {
         {
             "my_printf", 		// the name of WASM function name
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
             "hello_world", 		// the name of WASM function name
             hello_world, 		// the native function pointer
             "()"			    // the function prototype signature
-        }    
+        }
     };
 
     char *buffer, *bufferMultadd, error_buf[128];
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     /* add line below if we want to export native functions to WASM app */
     /*int n_native_symbols = sizeof(native_symbols) / sizeof(NativeSymbol);
     if (!wasm_runtime_register_natives("env", native_symbols, n_native_symbols))
-    {   
+    {
         free(buffer);
         exit(EXIT_FAILURE);
     }*/
@@ -127,13 +127,12 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if(!wasm_runtime_register_module(argv[1],module,error_buf,sizeof(error_buf))) 
+    if(!wasm_runtime_register_module("add",module,error_buf,sizeof(error_buf)))
     {
         fprintf(stderr, "registering the module %s failed\n", argv[1]);
         exit(EXIT_FAILURE);
-
     }
-    
+
     moduleMultadd = wasm_runtime_load(bufferMultadd, sizeMultadd, error_buf, sizeof(error_buf));
     if(moduleMultadd == NULL)
     {
@@ -142,7 +141,7 @@ int main(int argc, char *argv[])
     }
 
 
-     if(!wasm_runtime_register_module(argv[2],moduleMultadd,error_buf,sizeof(error_buf))) 
+     if(!wasm_runtime_register_module(argv[2],moduleMultadd,error_buf,sizeof(error_buf)))
     {
         fprintf(stderr, "registering the module %s failed\n", argv[1]);
         exit(EXIT_FAILURE);
@@ -151,7 +150,7 @@ int main(int argc, char *argv[])
     module_inst = wasm_runtime_instantiate(module, stack_size, heap_size,
                                             error_buf, sizeof(error_buf));
 
-    if(module_inst == NULL) 
+    if(module_inst == NULL)
     {
         fprintf(stderr, "module instantiation failed!\n");
         exit(EXIT_FAILURE);
@@ -160,7 +159,7 @@ int main(int argc, char *argv[])
     module_inst_multadd = wasm_runtime_instantiate(moduleMultadd, stack_size, heap_size,
                                             error_buf, sizeof(error_buf));
 
-    if(module_inst_multadd == NULL) 
+    if(module_inst_multadd == NULL)
     {
         fprintf(stderr, "module instantiation failed!\n");
         exit(EXIT_FAILURE);
@@ -192,7 +191,7 @@ int main(int argc, char *argv[])
       /* exception is thrown if call fails */
       printf("%s\n", wasm_runtime_get_exception(module_inst));
     }
-    wasm_runtime_destroy();    
+    wasm_runtime_destroy();
 
     return 0;
 }

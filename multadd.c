@@ -1,7 +1,7 @@
 #define import(name) __attribute__((import_name(name)))
 #define export(name) __attribute__((export_name(name))) __attribute__((visibility("default")))
 
-import("addFunc") 
+__attribute__((import_module("add"))) import("addFunc")
 extern int addFunc(int a, int b);
 
 export("multadd")
