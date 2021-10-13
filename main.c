@@ -9,7 +9,7 @@ void my_printf(wasm_exec_env_t exec_env, char *text)
     printf("%s\n",text);
 }
 
-void my_nprintf(wasm_exec_env_t exec_env, char *text, size_t len)
+void my_nprintf(wasm_exec_env_t exec_env, char *text, int len)
 {
     printf("message: '%.*s'\n", len, text);
 }
@@ -19,11 +19,12 @@ void hello_world(wasm_exec_env_t exec_env)
     printf("simple hello world is here \n");
 }
 
-char *read_wasm_binary_to_buffer(char *path, uint32_t *size)
+char *read_wasm_binary_to_buffer(const char *path, uint32_t *size)
 {
     FILE *fd = fopen(path, "rb");
     if(!fd)
     {
+        fprintf(stderr,"failed to open the %s file\n", path);
         perror("fopen failed!\n");
         return NULL;
     }
@@ -48,7 +49,7 @@ char *read_wasm_binary_to_buffer(char *path, uint32_t *size)
     }
 
     size_t read_bytes = fread(buffer, 1, fsize, fd);
-    if(read_bytes != fsize)
+    if(read_bytes != (size_t)fsize)
     {
         free(buffer);
         fprintf(stderr, "file read didnt read the whole file size and returned only %zu instead of %zu \n", read_bytes, fsize);
@@ -58,6 +59,25 @@ char *read_wasm_binary_to_buffer(char *path, uint32_t *size)
     *size = fsize; //+ 1;
     //buffer[fsize] = 0;
     return buffer;
+}
+
+
+static bool
+module_reader_cb(const char *module_name, uint8_t **p_buffer, uint32_t *p_size)
+{
+  *p_buffer = (uint8_t *)read_wasm_binary_to_buffer(module_name, p_size);
+  if(p_buffer == NULL)
+  {
+      perror("failed to load the module");
+      exit(EXIT_FAILURE);
+  }
+  return true;
+}
+
+static void
+module_destroyer_cb(uint8_t *buffer, uint32_t size)
+{
+  BH_FREE(buffer);
 }
 
 int main(int argc, char *argv[])
@@ -94,15 +114,17 @@ int main(int argc, char *argv[])
         fprintf(stderr,"wasm runtime initialisation failed\n");
         exit(EXIT_FAILURE);
     }
+    /* set module reader and destroyer */
+    wasm_runtime_set_module_reader(module_reader_cb, module_destroyer_cb);
 
     /* read WASM file into a memory buffer */
-    buffer = read_wasm_binary_to_buffer(argv[1], &size);
-    if(buffer == NULL)
-    {
-        fprintf(stderr, "the returned buffer for reading the wasm module is null\n");
-        exit(EXIT_FAILURE);
-    }
-
+    //buffer = read_wasm_binary_to_buffer(argv[1], &size);
+    //if(buffer == NULL)
+    //{
+    //    fprintf(stderr, "the returned buffer for reading the wasm module is null\n");
+    //    exit(EXIT_FAILURE);
+    //}
+//
       /* read WASM file into a memory buffer */
     bufferMultadd = read_wasm_binary_to_buffer(argv[2], &sizeMultadd);
     if(bufferMultadd == NULL)
@@ -120,23 +142,23 @@ int main(int argc, char *argv[])
     }*/
 
     /* parse the WASM file from buffer and create a WASM module */
-    module = wasm_runtime_load(buffer, size, error_buf, sizeof(error_buf));
-    if(module == NULL)
-    {
-        fprintf(stderr, "failed to load the module %s from the buffer\n", argv[1]);
-        exit(EXIT_FAILURE);
-    }
-
-    if(!wasm_runtime_register_module(argv[1],module,error_buf,sizeof(error_buf)))
-    {
-        fprintf(stderr, "registering the module %s failed\n", argv[1]);
-        exit(EXIT_FAILURE);
-    }
+    //module = wasm_runtime_load(buffer, size, error_buf, sizeof(error_buf));
+    //if(module == NULL)
+    //{
+    //    fprintf(stderr, "failed to load the module %s from the buffer\n", argv[1]);
+    //    exit(EXIT_FAILURE);
+    //}
+//
+    //if(!wasm_runtime_register_module(argv[1],module,error_buf,sizeof(error_buf)))
+    //{
+    //    fprintf(stderr, "registering the module %s failed\n", argv[1]);
+    //    exit(EXIT_FAILURE);
+    //}
 
     moduleMultadd = wasm_runtime_load(bufferMultadd, sizeMultadd, error_buf, sizeof(error_buf));
     if(moduleMultadd == NULL)
     {
-        fprintf(stderr, "failed to load the module %s from the buffer\n", argv[2]);
+        fprintf(stderr, "failed to load the module %s from the buffer with the error mesage %s\n", argv[2],error_buf);
         exit(EXIT_FAILURE);
     }
 
@@ -147,14 +169,14 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     /* create an instance of the WASM module (WASM linear memory is ready) */
-    module_inst = wasm_runtime_instantiate(module, stack_size, heap_size,
-                                            error_buf, sizeof(error_buf));
-
-    if(module_inst == NULL)
-    {
-        fprintf(stderr, "module instantiation failed!\n");
-        exit(EXIT_FAILURE);
-    }
+    //module_inst = wasm_runtime_instantiate(module, stack_size, heap_size,
+    //                                        error_buf, sizeof(error_buf));
+//
+    //if(module_inst == NULL)
+    //{
+    //    fprintf(stderr, "module instantiation failed!\n");
+    //    exit(EXIT_FAILURE);
+    //}
 
     module_inst_multadd = wasm_runtime_instantiate(moduleMultadd, stack_size, heap_size,
                                             error_buf, sizeof(error_buf));
