@@ -37,7 +37,7 @@ include (${WAMR_ROOT_DIR}/build-scripts/runtime_lib.cmake)
 add_library(vmlib STATIC ${WAMR_RUNTIME_LIB_SOURCE})
 
 add_custom_target(run ALL
-    DEPENDS test.wasm)
+    DEPENDS wasm_apps)
 
 if (NOT EXISTS ${WASI_SDK_DIR})    
     execute_process(
@@ -65,14 +65,19 @@ if (NOT EXISTS ${WASI_SDK_DIR})
 endif()
 
 add_custom_command(
-    OUTPUT test.wasm
-    COMMAND ${WASI_CLANG} --sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3 -o test.wasm ${CMAKE_CURRENT_SOURCE_DIR}/test.c
-    COMMENT "Compiling the test.c to test.wasm" 
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BIN_DIR}
+    OUTPUT  wasm_apps
+    COMMAND make all && mv *.wasm build/
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
-add_custom_target(test.wasm 
-    COMMAND ${WASI_CLANG} --sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3 -o test.wasm ${CMAKE_CURRENT_SOURCE_DIR}/test.c
-)
+#add_custom_command(
+#    OUTPUT test.wasm
+#    COMMAND ${WASI_CLANG} --sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3 -o test.wasm ${CMAKE_CURRENT_SOURCE_DIR}/test.c
+#    COMMENT "Compiling the test.c to test.wasm" 
+#    WORKING_DIRECTORY ${CMAKE_CURRENT_BIN_DIR}
+#)
+#add_custom_target(test.wasm 
+#    COMMAND ${WASI_CLANG} --sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3 -o test.wasm ${CMAKE_CURRENT_SOURCE_DIR}/test.c
+#)
 
 #add_executable(test.wasm test.c)
 #target_compile_options(test.wasm -sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3)

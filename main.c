@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if(!wasm_runtime_register_module("add",module,error_buf,sizeof(error_buf)))
+    if(!wasm_runtime_register_module(argv[1],module,error_buf,sizeof(error_buf)))
     {
         fprintf(stderr, "registering the module %s failed\n", argv[1]);
         exit(EXIT_FAILURE);
