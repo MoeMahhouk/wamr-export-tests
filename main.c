@@ -81,12 +81,12 @@ int main(int argc, char *argv[])
         }    
     };
 
-    char *buffer, error_buf[128];
-    wasm_module_t module;
-    wasm_module_inst_t module_inst;
+    char *buffer, *bufferMultadd, error_buf[128];
+    wasm_module_t module, moduleMultadd;
+    wasm_module_inst_t module_inst, module_inst_multadd;
     wasm_function_inst_t func;
     wasm_exec_env_t exec_env;
-    uint32_t size, stack_size = 8092, heap_size = 8092;
+    uint32_t size, sizeMultadd, stack_size = 8092, heap_size = 8092;
 
     /* initialize the wasm runtime by default configurations */
     if(!wasm_runtime_init())
@@ -102,22 +102,51 @@ int main(int argc, char *argv[])
         fprintf(stderr, "the returned buffer for reading the wasm module is null\n");
         exit(EXIT_FAILURE);
     }
+
+      /* read WASM file into a memory buffer */
+    bufferMultadd = read_wasm_binary_to_buffer(argv[2], &sizeMultadd);
+    if(bufferMultadd == NULL)
+    {
+        fprintf(stderr, "the returned buffer for reading the wasm module is null\n");
+        exit(EXIT_FAILURE);
+    }
+
     /* add line below if we want to export native functions to WASM app */
-    int n_native_symbols = sizeof(native_symbols) / sizeof(NativeSymbol);
+    /*int n_native_symbols = sizeof(native_symbols) / sizeof(NativeSymbol);
     if (!wasm_runtime_register_natives("env", native_symbols, n_native_symbols))
     {   
         free(buffer);
         exit(EXIT_FAILURE);
-    }
+    }*/
 
     /* parse the WASM file from buffer and create a WASM module */
     module = wasm_runtime_load(buffer, size, error_buf, sizeof(error_buf));
     if(module == NULL)
     {
-        fprintf(stderr, "failed to load the module from the buffer\n");
+        fprintf(stderr, "failed to load the module %s from the buffer\n", argv[1]);
         exit(EXIT_FAILURE);
     }
 
+    if(!wasm_runtime_register_module(argv[1],module,error_buf,sizeof(error_buf))) 
+    {
+        fprintf(stderr, "registering the module %s failed\n", argv[1]);
+        exit(EXIT_FAILURE);
+
+    }
+    
+    moduleMultadd = wasm_runtime_load(bufferMultadd, sizeMultadd, error_buf, sizeof(error_buf));
+    if(moduleMultadd == NULL)
+    {
+        fprintf(stderr, "failed to load the module %s from the buffer\n", argv[2]);
+        exit(EXIT_FAILURE);
+    }
+
+
+     if(!wasm_runtime_register_module(argv[2],moduleMultadd,error_buf,sizeof(error_buf))) 
+    {
+        fprintf(stderr, "registering the module %s failed\n", argv[1]);
+        exit(EXIT_FAILURE);
+    }
     /* create an instance of the WASM module (WASM linear memory is ready) */
     module_inst = wasm_runtime_instantiate(module, stack_size, heap_size,
                                             error_buf, sizeof(error_buf));
@@ -127,24 +156,37 @@ int main(int argc, char *argv[])
         fprintf(stderr, "module instantiation failed!\n");
         exit(EXIT_FAILURE);
     }
+
+    module_inst_multadd = wasm_runtime_instantiate(moduleMultadd, stack_size, heap_size,
+                                            error_buf, sizeof(error_buf));
+
+    if(module_inst_multadd == NULL) 
+    {
+        fprintf(stderr, "module instantiation failed!\n");
+        exit(EXIT_FAILURE);
+    }
+
       /* lookup a WASM function by its name
      The function signature can NULL here */
-    func = wasm_runtime_lookup_function(module_inst, "main", "()i");
+    func = wasm_runtime_lookup_function(module_inst_multadd, "multadd", "(iii)i");
     if (func == NULL) {
-        printf("main function not found\n");
+        printf("multadd function not found\n");
         return -1;
     }
 
     /* creat an execution environment to execute the WASM functions */
-    exec_env = wasm_runtime_create_exec_env(module_inst, stack_size);
+    exec_env = wasm_runtime_create_exec_env(module_inst_multadd, stack_size);
     if (exec_env == NULL) {
         printf("execution environmnet creation failed\n");
         return -1;
     }
-    uint32_t args[1] = {0};
-    if (wasm_runtime_call_wasm(exec_env, func, 0, args) ) {
+    uint32_t args[4] = {0};
+    args[0] = 1;
+    args[1] = 1;
+    args[2] = 2;
+    if (wasm_runtime_call_wasm(exec_env, func, 3, args) ) {
       /* the return value is stored in argv[0] */
-      printf("main function returned\n");
+      printf("mutladd function returned %d \n", args[0]);
     }
     else {
       /* exception is thrown if call fails */

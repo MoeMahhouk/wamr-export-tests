@@ -24,12 +24,11 @@ set(WAMR_BUILD_TARGET "X86_64")
 set (WAMR_BUILD_INTERP 1)
 set (WAMR_BUILD_FAST_INTERP 1)
 set (WAMR_BUILD_AOT 0)
-set (WAMR_BUILD_JIT 0)
+set (WAMR_BUILD_JIT 1)
+set (WAMR_BUILD_MULTI_MODULE 1)
 set (WAMR_BUILD_LIBC_BUILTIN 1)
-#
-if (NOT MSVC)
 set (WAMR_BUILD_LIBC_WASI 1)
-endif ()
+
 
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -fPIE")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat -Wformat-security")
@@ -73,7 +72,6 @@ add_custom_command(
 )
 add_custom_target(test.wasm 
     COMMAND ${WASI_CLANG} --sysroot=${WASI_SYSROOT} -Wl,--no-entry -O3 -o test.wasm ${CMAKE_CURRENT_SOURCE_DIR}/test.c
-
 )
 
 #add_executable(test.wasm test.c)
