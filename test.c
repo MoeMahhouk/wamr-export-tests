@@ -11,9 +11,9 @@ extern void my_nprintf(char *text, int len);
 import("hello_world")
 extern void hello_world();
 
-export("main_test")
+export("main")  
 int main(){
-  //printf("executing wasi printf\n");
+  printf("executing wasi printf\n");
   hello_world();
   my_printf("calling now my_printf imported function");
   char *hello = "hello there";  

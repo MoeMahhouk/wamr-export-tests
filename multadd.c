@@ -9,7 +9,10 @@ int multadd(int a, int b, int c)
 {
   return addFunc(a,b) * c;
 }
+
 int main()
 {
-  return 0;
+  int res = multadd(1,1,2);
+  printf("1+1 is 2 * 2 is %d quick math!! \n", res);
+  return res;
 }

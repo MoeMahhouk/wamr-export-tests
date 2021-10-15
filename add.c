@@ -7,5 +7,7 @@ int addFunc(int a, int b){
 
 int main()
 {
-  return 0;
+  int result = addFunc(1,1);
+  printf("1 + 1 is %d quick math\n", result);
+  return result;
 }
