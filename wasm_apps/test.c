@@ -1,4 +1,4 @@
-//#include <stdio.h>
+#include <stdio.h>
 #define import(name) __attribute__((import_name(name)))
 #define export(name) __attribute__((export_name(name))) __attribute__((visibility("default")))
 

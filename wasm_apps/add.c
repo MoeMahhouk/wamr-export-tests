@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define export(name) __attribute__((export_name(name))) __attribute__((visibility("default")))
 
 export("addFunc")
