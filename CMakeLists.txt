@@ -75,6 +75,7 @@ file(GLOB WASM_FILES
         "${CMAKE_BINARY_DIR}/add.wasm"
         "${CMAKE_BINARY_DIR}/multadd.wasm"
         "${CMAKE_BINARY_DIR}/test.wasm"
+        "${CMAKE_BINARY_DIR}/key_value.wasm"
 )
 
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
@@ -83,7 +84,6 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
 
         
 set(EXPORT_SOURCE_FILES export_natives/export.c)
-
 add_executable(export_test ${EXPORT_SOURCE_FILES})
 target_include_directories(export_test PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(export_test PRIVATE vmlib pthread m)
@@ -93,3 +93,10 @@ set(MULTMOD_SOURCE_FILES multi_modules/multimod.c)
 add_executable(multimod_test ${MULTMOD_SOURCE_FILES})
 target_include_directories(multimod_test PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(multimod_test PRIVATE vmlib pthread m)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
+
+set(EXPORT_KEY_VALUE_SOURCE_FILES export_key_value/export_key_value.cpp)
+add_executable(export_key_value ${EXPORT_KEY_VALUE_SOURCE_FILES})
+target_include_directories(export_key_value PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(export_key_value PRIVATE vmlib pthread m)
