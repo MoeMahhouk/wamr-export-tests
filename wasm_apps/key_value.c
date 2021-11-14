@@ -29,15 +29,13 @@ int main(){
   set_key_value(2, "ok");
     
   char *result = get_key_value(0);
+  char *result2 = get_key_value(1);
+  char *result3 = get_key_value(2);
   printf("getting index 0 is %s\n", result);
+  printf("getting index 1 is %s\n", result2);
+  printf("getting index 2 is %s\n", result3);
   free(result);
-
-  result = get_key_value(1);
-  printf("getting index 1 is %s\n", result);
-  free(result);
-
-  result = get_key_value(2);
-  printf("getting index 2 is %s\n", result);
-  free(result);
+  free(result2);
+  free(result3);
   return 0;
 }
