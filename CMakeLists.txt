@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8...3.16)
 project (export_test)
 
-set (WAMR_ROOT_DIR ./wamr) #ToDo better search for the installed wamr library
+set (WAMR_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/wamr) 
 set (WASI_VERSION 12)
 set (WASI_VERSION_FULL ${WASI_VERSION}.0)
 set (WASI_SDK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/wasi-sdk)
