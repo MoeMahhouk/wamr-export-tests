@@ -64,12 +64,22 @@ if (NOT EXISTS ${WASI_SDK_DIR})
      )
 endif()
 
-add_custom_command(
-    OUTPUT  wasm_apps
-    COMMAND cd wasm_apps && make all && mv *.wasm ${CMAKE_BINARY_DIR}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
 
+SET(DEFAULT_BENCHMARK_ITERATIONS 1000)
+
+if(BENCH_ITERATIONS)
+    add_custom_command(
+        OUTPUT  wasm_apps
+        COMMAND cd wasm_apps && BENCH_ITERATIONS=${BENCH_ITERATIONS} make all && mv *.wasm ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+else()
+    add_custom_command(
+        OUTPUT  wasm_apps
+        COMMAND cd wasm_apps && BENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS} make all && mv *.wasm ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+endif()
 
 file(GLOB WASM_FILES
         "${CMAKE_BINARY_DIR}/add.wasm"
@@ -85,7 +95,7 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "${WASM_FILES}"
 )
 
-        
+     
 set(EXPORT_SOURCE_FILES export_natives/export.c)
 add_executable(export_test ${EXPORT_SOURCE_FILES})
 target_include_directories(export_test PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
@@ -105,6 +115,8 @@ target_include_directories(export_key_value PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_
 target_link_libraries(export_key_value PRIVATE vmlib pthread m)
 if(BENCH_ITERATIONS)
     target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
+else()
+    target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS})
 endif()
 
 
@@ -114,4 +126,6 @@ target_include_directories(export_key_value_shared_mem PUBLIC ${WAMR_EMBEDDING_A
 target_link_libraries(export_key_value_shared_mem PRIVATE vmlib pthread m)
 if(BENCH_ITERATIONS)
     target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
+else()
+    target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS})
 endif()
