@@ -8,7 +8,7 @@ set (WASI_SDK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/wasi-sdk)
 set (WASI_CLANG ${WASI_SDK_DIR}/bin/clang)
 set (WASI_SYSROOT ${WASI_SDK_DIR}/share/wasi-sysroot)
 set (WAMR_EMBEDDING_API_INCLUDE_PATH  ${WAMR_ROOT_DIR}/core/iwasm/include)
-set (VM_LIB ${WAMR_ROOT_DIR}/product-mini/platforms/linux/build/libvmlib.a)
+#set (VM_LIB ${WAMR_ROOT_DIR}/product-mini/platforms/linux/build/libvmlib.a)
 
 
 set(CMAKE_CXX_COMPILER "clang++")
@@ -76,6 +76,9 @@ file(GLOB WASM_FILES
         "${CMAKE_BINARY_DIR}/multadd.wasm"
         "${CMAKE_BINARY_DIR}/test.wasm"
         "${CMAKE_BINARY_DIR}/key_value.wasm"
+        "${CMAKE_BINARY_DIR}/key_value_bench.wasm"
+        "${CMAKE_BINARY_DIR}/kv_shared_mem.wasm"
+
 )
 
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
@@ -100,3 +103,15 @@ set(EXPORT_KEY_VALUE_SOURCE_FILES export_key_value/export_key_value.cpp)
 add_executable(export_key_value ${EXPORT_KEY_VALUE_SOURCE_FILES})
 target_include_directories(export_key_value PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(export_key_value PRIVATE vmlib pthread m)
+if(BENCH_ITERATIONS)
+    target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
+endif()
+
+
+set(EXPORT_KEY_VALUE_SHARED_MEM_SOURCE_FILES export_key_value_shared_mem/export_key_value_shared_mem.cpp)
+add_executable(export_key_value_shared_mem ${EXPORT_KEY_VALUE_SHARED_MEM_SOURCE_FILES})
+target_include_directories(export_key_value_shared_mem PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(export_key_value_shared_mem PRIVATE vmlib pthread m)
+if(BENCH_ITERATIONS)
+    target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
+endif()

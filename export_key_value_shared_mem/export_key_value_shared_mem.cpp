@@ -15,9 +15,14 @@ typedef std::chrono::high_resolution_clock::time_point TimeVar;
 #define duration(a) std::chrono::duration_cast<std::chrono::nanoseconds>(a).count()
 #define timeNow() std::chrono::high_resolution_clock::now()
 
+
 std::map<int, char *> int_string_map = {{}};
 
+#ifndef SHARED_MEM_SIZE
+#define SHARED_MEM_SIZE 1024
+#endif
 
+char *shared_mem=NULL;
 
 
 int get_key_value(wasm_exec_env_t exec_env, int index)
@@ -29,24 +34,8 @@ int get_key_value(wasm_exec_env_t exec_env, int index)
         exit(EXIT_FAILURE);
     }
 
-    wasm_module_inst_t module_inst = get_module_inst(exec_env);
-    wasm_function_inst_t func = wasm_runtime_lookup_function(module_inst, "module_malloc", "(i)i");
-
-
-    uint32_t args[2] = {0};
-    args[0] = strlen(int_string_map[index]);
-    if (wasm_runtime_call_wasm(exec_env, func, 1, args) ) {
-      
-        char *buffer = (char *) wasm_runtime_addr_app_to_native(module_inst,args[0]);
-        strcpy(buffer, int_string_map[index]);     
-        return args[0];
-
-    }   
-    else {
-      /* exception is thrown if call fails */
-      printf("%s\n", wasm_runtime_get_exception(module_inst));
-      exit(EXIT_FAILURE);
-    }
+    strcpy(shared_mem, int_string_map[index]);
+    return strlen(int_string_map[index]);
 }
 
 void set_key_value(wasm_exec_env_t exec_env, int index, char *value)
@@ -106,16 +95,16 @@ int main(int argc, char *argv[])
     static NativeSymbol native_symbols[] =
     {
         {
-            "set_key_value", 		// the name of WASM function name
+            "set_key_value", 		        // the name of WASM function name
             (void *) set_key_value, 		// the native function pointer
-            "(i$)",			    // the function prototype signature
-            NULL,               // no attachments
+            "(i$)",			                // the function prototype signature
+            NULL,                           // no attachments
         },
         {
-            "get_key_value", 		// the name of WASM function name
+            "get_key_value", 		        // the name of WASM function name
             (void *) get_key_value, 		// the native function pointer
-            "(i)i",			    // the function prototype signature
-            NULL,               // no attachments       
+            "(i)i",			                // the function prototype signature
+            NULL,                           // no attachments       
         }
     };
 
@@ -169,12 +158,17 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    wasm_function_inst_t init_shared_mem_func = wasm_runtime_lookup_function(module_inst, "init_shared_mem", "(i)i");
+    if (init_shared_mem_func == NULL) {
+        printf("init_shared_mem_func function not found\n");
+        return -1;
+    }
 
       /* lookup a WASM function by its name
      The function signature can NULL here */
     func = wasm_runtime_lookup_function(module_inst, "main", "()i");
     if (func == NULL) {
-        printf("multadd function not found\n");
+        printf("main function not found\n");
         return -1;
     }
 
@@ -184,6 +178,22 @@ int main(int argc, char *argv[])
         printf("execution environmnet creation failed\n");
         return -1;
     }
+
+
+
+    uint32_t shared_mem_args[2] = {0};
+    shared_mem_args[0] = SHARED_MEM_SIZE;
+    if (wasm_runtime_call_wasm(exec_env, init_shared_mem_func, 1, shared_mem_args) ) {
+        printf("shared memory is initialised with the size %d\n", SHARED_MEM_SIZE);
+        shared_mem = (char *) wasm_runtime_addr_app_to_native(module_inst,shared_mem_args[0]);
+    }   
+    else {
+      /* exception is thrown if call fails */
+      printf("Error: calling init shared mem function %s\n", wasm_runtime_get_exception(module_inst));
+      exit(EXIT_FAILURE);
+    }
+
+
     uint32_t args[1] = {0};
     #ifdef BENCH_ITERATIONS
     TimeVar t1=timeNow();
