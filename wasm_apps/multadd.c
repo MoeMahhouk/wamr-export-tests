@@ -5,6 +5,15 @@
 __attribute__((import_module("add.wasm"))) import("addFunc")
 extern int addFunc(int a, int b);
 
+__attribute__((import_module("add.wasm"))) import("check")
+extern void check();
+
+export("externalCheck")
+void externalCheck()
+{
+  check();
+}
+
 export("multadd")
 int multadd(int a, int b, int c)
 {

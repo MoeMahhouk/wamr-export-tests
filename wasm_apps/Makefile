@@ -1,8 +1,8 @@
 BENCH_ITERATIONS?=1000
-
+VARIANT?=VARIANT1
 C := ../wasi-sdk/bin/clang
 #CFLAGS := --sysroot=../wasi-sdk-12.0/share/wasi-sysroot -Wl,--no-entry,--allow-undefined,--export-all -O3
-CFLAGS := --sysroot=../wasi-sdk/share/wasi-sysroot -Wl,--no-entry -O3 -DBENCH_ITERATIONS=$(BENCH_ITERATIONS)
+CFLAGS := --sysroot=../wasi-sdk/share/wasi-sysroot -Wl,--no-entry -O3 -DBENCH_ITERATIONS=$(BENCH_ITERATIONS) -DVARIANT=$(VARIANT)
 
 .PHONY: test add multadd key_value key_value_bench kv_shared_mem all
 
@@ -19,4 +19,4 @@ clean:
 	rm -f *.wasm
 %.wasm: %.c
 	$(C) $(CFLAGS) -o $@ $< 
-	@echo "The benchmark iterations are set to $(BENCH_ITERATIONS)!"
+	@echo "The benchmark iterations are set to $(BENCH_ITERATIONS) and the variant is set to $(VARIANT)!"

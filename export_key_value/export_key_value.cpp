@@ -1,3 +1,4 @@
+#include <bits/stdint-uintn.h>
 #include <cstdlib>
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,16 +24,34 @@ std::map<int, char *> int_string_map = {{}};
 int get_key_value(wasm_exec_env_t exec_env, int index)
 {
 
-    if(index >= int_string_map.size())
+    if(!int_string_map.count(index))
     {
         printf("Error(get_key_value): index out of bound \n");
         exit(EXIT_FAILURE);
     }
 
     wasm_module_inst_t module_inst = get_module_inst(exec_env);
+
+
+    #if defined VARIANT && VARIANT == 1
+    /* Variant 1 */
+    return wasm_runtime_addr_native_to_app(module_inst, int_string_map[index]);
+    #endif
+
+    #if defined VARIANT && VARIANT == 2
+    /* Variant 2 */
+    char *native_memory = NULL;
+    uint32_t wasm_buffer= 0;
+    uint32_t value_size = strlen(int_string_map[index]);
+    wasm_buffer = wasm_runtime_module_malloc(module_inst, value_size,(void **)&native_memory);   // should be later free either from host or export wasm_runtime_module_free() as a native function
+    memcpy(native_memory, int_string_map[index], value_size);
+    return wasm_buffer;
+    #endif
+
+
+    #if defined VARIANT && VARIANT == 3
+    /* Variant 3 */
     wasm_function_inst_t func = wasm_runtime_lookup_function(module_inst, "module_malloc", "(i)i");
-
-
     uint32_t args[2] = {0};
     args[0] = strlen(int_string_map[index]);
     if (wasm_runtime_call_wasm(exec_env, func, 1, args) ) {
@@ -47,6 +66,12 @@ int get_key_value(wasm_exec_env_t exec_env, int index)
       printf("%s\n", wasm_runtime_get_exception(module_inst));
       exit(EXIT_FAILURE);
     }
+    #endif
+}
+void native_module_free(wasm_exec_env_t exec_env, uint32_t ptr) 
+{
+    wasm_module_inst_t module_inst = get_module_inst(exec_env);
+    wasm_runtime_module_free(module_inst, ptr);
 }
 
 void set_key_value(wasm_exec_env_t exec_env, int index, char *value)
@@ -106,16 +131,22 @@ int main(int argc, char *argv[])
     static NativeSymbol native_symbols[] =
     {
         {
-            "set_key_value", 		// the name of WASM function name
-            (void *) set_key_value, 		// the native function pointer
-            "(i$)",			    // the function prototype signature
-            NULL,               // no attachments
+            "set_key_value", 		            // the name of WASM function name
+            (void *) set_key_value, 		    // the native function pointer
+            "(i$)",			                    // the function prototype signature
+            NULL,                               // no attachments
         },
         {
-            "get_key_value", 		// the name of WASM function name
-            (void *) get_key_value, 		// the native function pointer
-            "(i)i",			    // the function prototype signature
-            NULL,               // no attachments       
+            "get_key_value", 		            // the name of WASM function name
+            (void *) get_key_value, 		    // the native function pointer
+            "(i)i",			                    // the function prototype signature
+            NULL,                               // no attachments       
+        },
+        {
+            "native_module_free",               // the name of WASM function name
+            (void *) native_module_free,        // the native function pointer
+            "(i)",                              // the function prototype signature
+            NULL                                // no attachments 
         }
     };
 

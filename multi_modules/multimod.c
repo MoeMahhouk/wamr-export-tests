@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     char *buffer, error_buf[128];
     wasm_module_t module;
     wasm_module_inst_t module_inst;
-    wasm_function_inst_t func;
+    wasm_function_inst_t func, addfunc;
     wasm_exec_env_t exec_env;
     uint32_t size, stack_size = 8092, heap_size = 8092;
 
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     uint32_t args[4] = {0};
     args[0] = 1;
     args[1] = 1;
-    args[2] = 2;
+    args[2] = 1;
     if (wasm_runtime_call_wasm(exec_env, func, 3, args) ) {
       /* the return value is stored in argv[0] */
       printf("mutladd function returned %d \n", args[0]);
@@ -156,6 +156,38 @@ int main(int argc, char *argv[])
       /* exception is thrown if call fails */
       printf("%s\n", wasm_runtime_get_exception(module_inst));
     }
+
+    args[0] = 1;
+    args[1] = 1;
+    args[2] = 1;
+    if (wasm_runtime_call_wasm(exec_env, func, 3, args) ) {
+      /* the return value is stored in argv[0] */
+      printf("mutladd function returned %d \n", args[0]);
+    }
+    else {
+      /* exception is thrown if call fails */
+      printf("%s\n", wasm_runtime_get_exception(module_inst));
+    }
+
+
+    addfunc = wasm_runtime_lookup_function(module_inst, "externalCheck", "()");
+    if (addfunc == NULL) {
+        printf("add function not found\n");
+        return -1;
+    }
+
+    char *add_args[1]= {0};
+    if (wasm_application_execute_func(module_inst,"$add.wasm$check", 0 , &add_args[0])) {
+    //if (wasm_runtime_call_wasm(exec_env, addfunc, 0, add_args) ) {
+      /* the return value is stored in argv[0] */
+      //printf("add function returned %d \n", add_args[0]);
+    }
+    else {
+      /* exception is thrown if call fails */
+      printf("%s\n", wasm_runtime_get_exception(module_inst));
+    }
+
+
     wasm_runtime_destroy();
 
     return 0;

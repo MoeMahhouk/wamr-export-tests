@@ -64,22 +64,20 @@ if (NOT EXISTS ${WASI_SDK_DIR})
      )
 endif()
 
-
-SET(DEFAULT_BENCHMARK_ITERATIONS 1000)
-
-if(BENCH_ITERATIONS)
-    add_custom_command(
-        OUTPUT  wasm_apps
-        COMMAND cd wasm_apps && BENCH_ITERATIONS=${BENCH_ITERATIONS} make all && mv *.wasm ${CMAKE_BINARY_DIR}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-else()
-    add_custom_command(
-        OUTPUT  wasm_apps
-        COMMAND cd wasm_apps && BENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS} make all && mv *.wasm ${CMAKE_BINARY_DIR}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+if(NOT BENCH_ITERATIONS)
+    SET(BENCH_ITERATIONS 1000000)
 endif()
+if(NOT VARIANT)
+    SET(VARIANT 1)
+endif()
+
+
+add_custom_command(
+    OUTPUT  wasm_apps
+    COMMAND cd wasm_apps && BENCH_ITERATIONS=${BENCH_ITERATIONS} VARIANT=${VARIANT} make all && mv *.wasm ${CMAKE_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 
 file(GLOB WASM_FILES
         "${CMAKE_BINARY_DIR}/add.wasm"
@@ -113,19 +111,28 @@ set(EXPORT_KEY_VALUE_SOURCE_FILES export_key_value/export_key_value.cpp)
 add_executable(export_key_value ${EXPORT_KEY_VALUE_SOURCE_FILES})
 target_include_directories(export_key_value PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(export_key_value PRIVATE vmlib pthread m)
-if(BENCH_ITERATIONS)
-    target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
-else()
-    target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS})
-endif()
+target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS} -DVARIANT=${VARIANT})
 
 
 set(EXPORT_KEY_VALUE_SHARED_MEM_SOURCE_FILES export_key_value_shared_mem/export_key_value_shared_mem.cpp)
 add_executable(export_key_value_shared_mem ${EXPORT_KEY_VALUE_SHARED_MEM_SOURCE_FILES})
 target_include_directories(export_key_value_shared_mem PUBLIC ${WAMR_EMBEDDING_API_INCLUDE_PATH} ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(export_key_value_shared_mem PRIVATE vmlib pthread m)
-if(BENCH_ITERATIONS)
-    target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
-else()
-    target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS})
-endif()
+target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS} -DVARIANT=${VARIANT})
+
+
+#if(BENCH_ITERATIONS)
+#    target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
+#    target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${BENCH_ITERATIONS})
+#else()
+#    target_compile_definitions(export_key_value PUBLIC -DBENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS})
+#    target_compile_definitions(export_key_value_shared_mem PUBLIC -DBENCH_ITERATIONS=${DEFAULT_BENCHMARK_ITERATIONS})
+#endif()
+#
+#if(VARIANT)
+#    target_compile_definitions(export_key_value PUBLIC -DVARIANT=${VARIANT})
+#    target_compile_definitions(export_key_value_shared_mem PUBLIC -DVARIANT=${VARIANT})
+#else()
+#    target_compile_definitions(export_key_value PUBLIC -DVARIANT=${DEFAULT_VARIANT})
+#    target_compile_definitions(export_key_value_shared_mem PUBLIC -DVARIANT=${DEFAULT_VARIANT})
+#endif()

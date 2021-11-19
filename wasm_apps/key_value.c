@@ -12,6 +12,9 @@ extern char* get_key_value(int index);
 import("set_key_value")
 extern void set_key_value(int index, char *value);
 
+import("native_module_free")
+extern void native_module_free(void *ptr);
+
 export("module_malloc")
 char *module_malloc(int size){
     if(size <= 0) return NULL;
@@ -34,8 +37,20 @@ int main(){
   printf("getting index 0 is %s\n", result);
   printf("getting index 1 is %s\n", result2);
   printf("getting index 2 is %s\n", result3);
-  free(result);
+  
+  #if defined VARIANT && VARIANT == 2
+  /* Variant 2 */
+  native_module_free(result);
+  native_module_free(result2);
+  native_module_free(result3);
+  printf("getting index 0 after free is %s\n", result);
+  printf("getting index 1 after free is %s\n", result2);
+  printf("getting index 2 after free is %s\n", result3);
+  #endif
+
+  /* Variant 3    */
+  /*free(result);
   free(result2);
-  free(result3);
+  free(result3);*/
   return 0;
 }
